@@ -1,0 +1,29 @@
+name: RasaDesk - build relay (hbbs/hbbr with traffic quota)
+
+# این workflow باید در فورک مخزن rustdesk/rustdesk-server (تگ 1.1.16) اجرا شود،
+# با پوشه‌ی relay-patch/ از این پروژه در مسیر rasadesk/relay-patch.
+on:
+  workflow_dispatch:
+
+jobs:
+  build-windows:
+    runs-on: windows-2022
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Apply quota patch
+        run: node rasadesk/relay-patch/apply-relay-patch.js .
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+      - name: Build
+        run: cargo build --release --bins
+      - uses: actions/upload-artifact@v4
+        with:
+          name: rasadesk-relay-windows-x86_64
+          path: |
+            target/release/hbbs.exe
+            target/release/hbbr.exe
